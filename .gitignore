@@ -1,0 +1,8 @@
+.*.swp
+Makefile
+autom4te.cache
+*.o
+config.log
+config.status
+configure
+program

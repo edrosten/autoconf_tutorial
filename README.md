@@ -66,10 +66,10 @@ Alriiight! :)
 Now that that's out of the way, there's a few basic things.
 * All public Autoconf M4 macros look like A[CST]_??????. There may be private versions starting with _, but it's generally a bad idea to use them.
 * M4 arguments are quoted with [ and ]. There is NO WAY to escape these, however, you have several options if you wish to insert ['s or ]'s:
-  1 Use a `Quadrigaph'. @<:@ gives you [ and @>:@ gives you ]. Those look as nasty as they sound.
-  2 Balance your quotes. M4 will turn [[]] in to []. Beware of using this in arguments to macros. Sometimes, you need to double quote as well ([[[]]]).  This is also as nasty as it sounds.
-  3 Change the quoting using: changequote(<<,>>) to change the quoting to << and >>. The autoconf documentation (rightly, in my opinion) warns against the (over) use of this, since it can lead to unexpected results. This is also as nasty... see the pattern here?
-  3. Avoid [ and ] whereever possible.
+  1. Use a `Quadrigaph'. @<:@ gives you [ and @>:@ gives you ]. Those look as nasty as they sound.
+  2. Balance your quotes. M4 will turn [[]] in to []. Beware of using this in arguments to macros. Sometimes, you need to double quote as well ([[[]]]).  This is also as nasty as it sounds.
+  3. Change the quoting using: changequote(<<,>>) to change the quoting to << and >>. The autoconf documentation (rightly, in my opinion) warns against the (over) use of this, since it can lead to unexpected results. This is also as nasty... see the pattern here?
+  4. Avoid [ and ] whereever possible.
   As a result, you can't easily use the shell command [ to perform tests. You have to use test instead.
 * If you make bad shell code, the errors probably won't appear until you run the configure script.
 * Configure scripts are almost always called configure.ac

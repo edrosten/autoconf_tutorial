@@ -27,7 +27,7 @@ are written in a combination of shell and M4 (a macro processing language
 considerably more capable than the C preprocessor). Autoconf essentially runs
 the preprocessor on your script to produce a portable shell script which will
 perform all the requisite tests, produce handy log files, preprocess template
-files, for example to generate Makefile from Makefile.in and and take a standard
+files, for example to generate `Makefile` from `Makefile.in` and and take a standard
 set of command line arguments.
 
 There are several tools in the suite, including automake (for automatically
@@ -64,13 +64,13 @@ ex_01 $
 Alriiight! :)
 
 Now that that's out of the way, there's a few basic things.
-* All public Autoconf M4 macros look like A[CST]_??????. There may be private versions starting with _, but it's generally a bad idea to use them.
-* M4 arguments are quoted with [ and ]. There is NO WAY to escape these, however, you have several options if you wish to insert ['s or ]'s:
-  1. Use a `Quadrigaph'. @<:@ gives you [ and @>:@ gives you ]. Those look as nasty as they sound.
-  2. Balance your quotes. M4 will turn [[]] in to []. Beware of using this in arguments to macros. Sometimes, you need to double quote as well ([[[]]]).  This is also as nasty as it sounds.
-  3. Change the quoting using: changequote(<<,>>) to change the quoting to << and >>. The autoconf documentation (rightly, in my opinion) warns against the (over) use of this, since it can lead to unexpected results. This is also as nasty... see the pattern here?
-  4. Avoid [ and ] whereever possible.
-  As a result, you can't easily use the shell command [ to perform tests. You have to use test instead.
+* All public Autoconf M4 macros look like `A[CST]_??????`. There may be private versions starting with `_`, but it's generally a bad idea to use them.
+* M4 arguments are quoted with `[` and `]`. There is NO WAY to escape these, however, you have several options if you wish to insert `[`'s or `]`'s:
+  1. Use a ‘Quadrigaph’. `@<:@` gives you `[` and `@>:@` gives you `]`. Those look as nasty as they sound.
+  2. Balance your quotes. M4 will turn `[[]]` in to `[]`. Beware of using this in arguments to macros. Sometimes, you need to double quote as well (`[[[]]]`).  This is not as nasty as it sounds, it's much, much nastier. M4 programming is quite fun in that you have such a huge of acievement when the quotes finally work correctly.
+  3. Change the quoting using: `changequote(<<,>>)` to change the quoting to `<<` and `>>`. The autoconf documentation (rightly, in my opinion) warns against the (over) use of this, since it can lead to unexpected results. This is also as nasty... see the pattern here?
+  4. Avoid `[` and `]` whereever possible.
+  As a result, you can't easily use the shell command `[` to perform tests. You have to use test instead.
 * If you make bad shell code, the errors probably won't appear until you run the configure script.
 * Configure scripts are almost always called configure.ac
 * Bear in mind that this is a tutorial. Many macros provide optional arguments which allow you to change the way of doing things. There may be many more ways of solving a problem than I've covered here.
@@ -88,8 +88,8 @@ If all goes well and you have a C++ compiler installed, then you should get:
 ```text
 Hello, I am a program
 ```
-[It's now going to be autoconfized](ex_03). First, we rename Makefile to
-Makefile.in and make it look like this:
+[It's now going to be autoconfized](ex_03). First, we rename `Makefile` to
+`Makefile.in` and edit it look like this:
 ```make
 CXX=@CXX@
 LD=@CXX@
@@ -181,7 +181,7 @@ make: *** [program.o] Error 1
 ```
 Wait, what?
 
-The AVR is a "non hosted" platform in that it has no OS. That means that you
+The AVR is a “non hosted” platform in that it has no OS. That means that you
 can't expect obvious bits of the C++ standard library to be there. While this is
 an obscure case, it does illustrate the next topic very nicely which is:
 
@@ -202,13 +202,13 @@ then we change the build line to use them:
 program: program.o
         $(LD) -o $@ $^ $(LDFLAGS) $(LIBS)
 ```
-At this point you might wonder, "Why not save typing and just use @LIBS@
-everywhere?". It's a good question. The answer is that you can, but if you ever
+At this point you might wonder, “Why not save typing and just use `@LIBS@`
+everywhere?”. It's a good question. The answer is that you can, but if you ever
 end up debugging things and you want to make a quick, temporary change by
-editing the Makefile, you will curse yourself because instead of changing it in
+editing the generated Makefile, you will curse yourself because instead of changing things in
 one place, you have to change it everywhere.
 
-So, now, put the following lines in the configure.ac file:
+So, now, put the following lines in the `configure.ac` file:
 ```autoconf
 AC_CHECK_HEADERS(zlib.h)
 AC_SEARCH_LIBS(deflate, z)
@@ -251,7 +251,7 @@ Probably the easiest solution is to do this:
 AC_CHECK_HEADERS(zlib.h, [], [AC_ERROR([A working zlib is required])])
 AC_SEARCH_LIBS(deflate, z, [], [AC_ERROR([A working zlib is required])])
 ```
-Now try misspelling "deflate" and rerunning autoconf and configure. You'll see
+Now try misspelling “deflate” and rerunning autoconf and configure. You'll see
 it fail like this:
 ```text
 checking zlib.h usability... yes
@@ -269,7 +269,7 @@ ways of dealing with those. The two common ones are via conditional compilation
 prefer the latter if possible.
 
 Now, the tests so far will set things which can be used (like the presence or
-absence of -lz in the library flags), but they are independent. You want to
+absence of `-lz` in the library flags), but they are independent. You want to
 enable the dependency if and only if all relavent tests pass. I find the easiest
 way of doing that is using a construct like this:
 

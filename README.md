@@ -366,6 +366,7 @@ If `HAVE_LIBZ` is exported by `configure`, then that line is commented out. The
 #### :neckbeard: Ed's Soapbox :neckbeard:
 
 Avoid `config.h` as much as possible. Disadvantages are:
+
 1. Every file depending on `config.h` must be rebuilt if `config.h` changes even
 if the change is irrelevant.
 2. Conditional compilation is ugly and can lead to tangled messes of dead code.
@@ -383,7 +384,7 @@ rely on separating off platform specific parts into different modules and files.
 
 ### Nicer dependencies with --with and --enable
 
-So if you've mad it this far, you probably noticed that debugging and checking
+So if you've made it this far, you probably noticed that debugging and checking
 the scripts was a bit of a pain, because you had to edit them to make one of the
 tests fail then rerun autoconf, then put it back again. Autoconf provides two
 methods of configuration. They are almost identical in function, but the
@@ -398,3 +399,7 @@ conventions are:
 If a script understands `--with-bar`, it will also understand `--without-bar`
 which is exactly equivalent to `--with-bar=no`. That means you can also supply
 arguments to `with`. `--enable-foo` works in the same way.
+
+
+
+

@@ -1,0 +1,6 @@
+#ifndef INCLUDE_CONFIG_H_df90858
+#define INCLUDE_CONFIG_H_df90858
+
+#undef HAVE_ZLIB
+
+#endif

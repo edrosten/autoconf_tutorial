@@ -6,9 +6,9 @@ A long time ago I  autoconf-ized the build system for
 [libCVD](http://www.edwardrosten.com/cvd/index.html).
 It was one of the
 best decisions I made with that library. It took me a while because there wasn't
-a good "getting started" guide, so
+a good “getting started” guide, so
 [I wrote one](http://www.edwardrosten.com/code/autoconf/). It's been the
-top link for "autoconf tutorial" on google for a while.
+top link for “autoconf tutorial” on google for a while.
 
 Don't go there.
 
@@ -289,5 +289,112 @@ fi
 
 ```
 
+I'm now going to make zlib an optional dependency.
+
+### Compiling alternate files
+
+The first thing to do is to [provide two alternatives](ex_06), one for zlib and
+one without. Obviously in this case the example is a little contrived but we
+want to compile [hello_libz.cc](ex_06/hello_libz.cc) if we find zlib and
+[hello_no_libz.cc](ex_06/hello_no_libz.cc) if we don't. Either way, `main()` is
+the same, and just calls the `hello()` function.
+
+Now, alter [Makefile.in](ex_06/Makefile.in) so it can use another parameter that
+we get from `configure`:
+```make
+objs=@objs@
+
+program: program.o $(objs)
+	$(LD) -o $@ $^ $(LDFLAGS) $(LIBS)
+```
+And alter [configure.ac](ex_06/configure.ac) so it populates @objs@ with either
+one object file or another.
+```autoconf
+dnl List of object files as determined by autoconf
+object_files=""
+
+a=0
+AC_CHECK_HEADERS(zlib.h, [], [a=1])
+AC_SEARCH_LIBS(deflate, z, [], [a=1])
+
+if test $a == 0
+then
+	object_files="$object_files hello_libz.o"
+else
+	object_files="$object_files hello_no_libz.o"
+fi
+
+dnl Make AC_OUTPUT substitute the contents of $object_files for @objs@
+AC_SUBST(objs, ["$object_files"])
+```
+
+Now `configure` will choose between one of the two source files to compile and
+link, depending on the result of the test. The complete program will work either
+way.
+
+### Conditional compilation
+
+The [other main way](ex_07) of having autoconf affect the build is via conditional
+compilation. You could export `-D` definitions to the CXXFLAGS or a custom
+variable. That's a bad idea because your program will have a dependency on the
+arguments, and make doesn't track or examine those dependencies. The standard
+way is to generate a `config.h` file instead. The process is similar to, but not
+identical to creating a makefile. The relevant part of
+[configure.ac](ex_07/configure.ac) is:
+```autoconf
+a=0
+AC_CHECK_HEADERS(zlib.h, [], [a=1])
+AC_SEARCH_LIBS(deflate, z, [], [a=1])
+
+if test $a == 0
+then
+	AC_DEFINE(HAVE_LIBZ)
+fi
+
+AC_CONFIG_HEADERS(config.h)
+```
+`AC_DEFINE` will cause a #define to be written in `config.h`. **IMPORTANT:**
+`AC_CONFIG_HEADERS` must come before `AC_OUTPUT` otherwise it willbe silently
+ignored. [config.h.in](ex_07/config.h.in) is a template of an include file, but
+substitutions are done on `#undef` lines, it must contain:
+```C
+#undef HAVE_LIBZ
+```
+If `HAVE_LIBZ` is exported by `configure`, then that line is commented out. The
+[C++ code](ex_07/program.c) can then `#include <config.h>` and use the macros.
+
+#### :neckbeard: Ed's Soapbox :neckbeard:
+
+Avoid `config.h` as much as possible. Disadvantages are:
+1. Every file depending on `config.h` must be rebuilt if `config.h` changes even
+if the change is irrelevant.
+2. Conditional compilation is ugly and can lead to tangled messes of dead code.
+3. It's generally good practice to avoid the preprocessor where possible.
+4. If you're building a library and you've got a `config.h` included from the
+public headers, then everything using the library has to be rebuilt if
+`config.h` changes.
+5. More source files means better parallel builds.
+
+This isn't a rigid rule. Sometimes the clearest, simplest and most elegant
+solution to some gnarly cross-platform portability problem involves the
+preprocessor. In most cases though however, the cleanest portable designs will
+rely on separating off platform specific parts into different modules and files.
 
 
+### Nicer dependencies with --with and --enable
+
+So if you've mad it this far, you probably noticed that debugging and checking
+the scripts was a bit of a pain, because you had to edit them to make one of the
+tests fail then rerun autoconf, then put it back again. Autoconf provides two
+methods of configuration. They are almost identical in function, but the
+conventions are:
+* `--enable-foo` enable feature foo. This is typically used to enable or disable
+  an entire feature, such as `--enable-gui`. 
+* `--with-bar` use dependency bar. This is typically used to switch on/off a
+  dependency. That may have an effect on a whole feature. For example
+  `--without-gtk` might end up disabling the GUI if no other toolkit is
+  available.
+
+If a script understands `--with-bar`, it will also understand `--without-bar`
+which is exactly equivalent to `--with-bar=no`. That means you can also supply
+arguments to `with`. `--enable-foo` works in the same way.

@@ -398,7 +398,61 @@ conventions are:
 
 If a script understands `--with-bar`, it will also understand `--without-bar`
 which is exactly equivalent to `--with-bar=no`. That means you can also supply
-arguments to `with`. `--enable-foo` works in the same way.
+arguments to `with`. `--enable-foo` works in the same way.  Both styles simply
+set an environment variable. You can then act on that with the usual shell
+scripting. 
+
+The format is:
+```autoconf
+AC_ARG_WITH(zlib, [AS_HELP_STRING([--without-zlib], [do not use zlib])])
+```
+The first argument is the feature, and it will set `$with_zlib` to the value
+specified (blank if the argument is not used). The second argument is the text
+which appears if `./configure --help` is run. `AS_HELP_STRING` simply makes
+everything line up and look pretty. Much like the other tests, you can also
+specify actions for if the commandline argument is present or absent.
+
+
+[This example](ex_08) is very similar to [Example 6](ex_06), except that the
+relevant part of [configure.ac](ex_08/configure.ac) is now:
+```configure
+AC_ARG_WITH(zlib, [AS_HELP_STRING([--without-zlib], [do not use zlib])])
+
+zlib_objs=hello_no_libz.o
+if test "$with_zlib" != no
+then
+	a=0
+	AC_CHECK_HEADERS(zlib.h, [], [a=1])
+	AC_SEARCH_LIBS(deflate, z, [], [a=1])
+
+	if test $a == 0
+	then
+		zlib_objs=hello_libz.o
+	fi
+fi
+
+object_files="$object_files $zlib_objs"
+
+```
+Now, if `--without-zlib` is specified then it doesn't even try to run the tests,
+and carries on as if the tests have failed.
+
+
+
+## What about automake and libtool?
+
+Er... yes they exist.
+
+I'm not going to cover them because I don't use them for a variety of reasons.
+Back when I learned autoconf, automake always generated recursive Makefiles.
+[Those are bad](aegis.sourceforge.net/auug97.pdf) for many reasons but
+especially if you do parallel builds with `make -J 4`. I had a dual processor
+machine back when multiple processors or cores were rare so it mattered to me
+more than most people.
+
+
+
+
 
 
 

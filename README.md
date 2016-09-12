@@ -470,13 +470,47 @@ source directory.
 
 ## Moving on
 
-At this point you now have a fully featured autoconf build system.
+At this point you now have a basic, but fully featured autoconf build system.
+Most of what to do can probably be accomplished with what you've covered so far,
+however you may come across things which aren't covered.
 
-## Other people's macros
+If you do get into writing your own tests, then it's a very good idea to build
+off the autoconf macros if at all possible. I know from experience that it's an
+especially bad idea to write tests that probe the machine you're running the
+autoconf script from because then you won't be able to deploy the resulting
+program on a different mahchine (for example if you're cross compiling).
+
+Even without machine specific tests, there are other things you might want to
+look for or other parts of the build system you might want to probe.
 
 ## Other tests
 
-## writing your own tests
+At this point I'm just going to list a selection of what's available. The usage
+should be reasonably obvious from the names. Quite a few of the marcros have
+`IF_ELSE` in the name, which means they just give you places to insert code for
+success or failure. For quite a lot of common cases, there are more specialised
+macros to help. Note again, this is a small selection to give a flavour. Since
+this is a tutorial I can't cover them all, so it's best to browse 
+[the manual](https://www.gnu.org/software/autoconf/manual/autoconf.html) at this
+point.
+* `AC_COMPILE_IFELSE`  --- useful for testing C++ header only libraries
+* `AC_PREPROCESS_IFELSE`
+* `AC_LINK_IFELSE`
+* `AC_RUN_IFELSE` --- this one is tricky. If you're cross compiling, you
+  probably can't run a program you've just compiled, so you need to provide
+  the script with some way of making a decision in that case.
+* `AC_PROG_AWK` --- find a working AWK. Versions exist for many of the common
+  tools.
+* `AC_CHECK_TYPES([long long])`, `AC_TYPE_UINT8_T` ---  check for various
+  typedefs
+* `AC_OPENMP`
+
+## Other people's macros
+
+Autoconf provides tools, but doesn't provide tests for everything, especially
+outside of C.
+
+## Writing your own tests
 
 
 

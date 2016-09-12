@@ -1,0 +1,15 @@
+CXX=@CXX@
+LD=@CXX@
+CXXFLAGS=@CXXFLAGS@
+LDFLAGS=@LDFLAGS@
+LIBS=@LIBS@
+VPATH=@srcdir@
+objs=@objs@
+
+program: program.o $(objs)
+	$(LD) -o $@ $^ $(LDFLAGS) $(LIBS)
+
+.PHONY: clean
+clean:
+	rm -f program *.o
+

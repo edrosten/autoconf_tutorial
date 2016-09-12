@@ -1,6 +1,6 @@
 #A brief introduction to Autoconf (2nd edition)
 
-## Peface
+## Preface
 
 A long time ago I  autoconf-ized the build system for 
 [libCVD](http://www.edwardrosten.com/cvd/index.html).
@@ -14,7 +14,10 @@ Don't go there.
 
 The trouble is I wrote it after my first Autoconf project back in 2005 or so.
 I've learned how to use it better since then and it's also moved on. It'll get
-you started, but probably teach you bad habits.
+you started, but probably teach you bad habits. I've also since come to the
+conclusion that while autoconf is entirely separate from make and can be used
+without it, it makes much more sense to have examples with makefiles because
+they are almost always used together.
 
 
 ## Introduction
@@ -188,7 +191,7 @@ an obscure case, it does illustrate the next topic very nicely which is:
 ## Performing basic tests
 
 So first we need some tests to perform. The iostream example is a little 
-contrived, so I'll bring in a really common library, [http://zlib.com](zlib).
+contrived, so I'll bring in a really common library, [zlib](http://zlib.com).
 The new program [example 5](ex_05) now outputs its data gzip compressed.
 
 First, we need to modify the [Makefile.in](ex_05/Makefile.in) to use the library
@@ -437,6 +440,44 @@ object_files="$object_files $zlib_objs"
 Now, if `--without-zlib` is specified then it doesn't even try to run the tests,
 and carries on as if the tests have failed.
 
+## Out of tree builds
+
+Out of tree builds are one of those features that are rarely used, but probably
+ought to be used more. They're kind of handy because with the same source tree,
+you can build various versions (standard, debugging, cross compiled) from a
+single source tree, without having to keep multiple copies in sync. It's also so
+easy to do that you may as well do it.
+
+Autoconf supports it by providing @srcdir@ which tells you the directory of the
+configure script and of course by extension the source code. That's it as far as
+autoconf goes, it's completely automatic.
+
+You then need to use the virtual path (vpath) feature of make. Essentially, add
+the line
+```make
+VPATH=@srcdir@
+```
+to Makefile.in, and now make will more or less overlay VPATH on the current
+directory when it comes to file lookups.
+
+That's all there is to is. Go into [example 9](ex_09) and run autoconf to create
+the configure script. Now go into /tmp and type something like:
+```shell
+/path/to/autoconf_tutorial/ex_09/configure && make && ./program | zcat
+```
+It should work just as well as if you ran configure and make from within the
+source directory.
+
+## Moving on
+
+At this point you now have a fully featured autoconf build system.
+
+## Other people's macros
+
+## Other tests
+
+## writing your own tests
+
 
 
 ## What about automake and libtool?
@@ -448,7 +489,20 @@ Back when I learned autoconf, automake always generated recursive Makefiles.
 [Those are bad](aegis.sourceforge.net/auug97.pdf) for many reasons but
 especially if you do parallel builds with `make -J 4`. I had a dual processor
 machine back when multiple processors or cores were rare so it mattered to me
-more than most people.
+more than most people. I also like GNU Make particularly, and I'm entirely happy
+with writing Makefiles to the point where I don't feel the need for extra
+automation.
+
+Libtool was (for me) a relatively frequent and hard to debug source of build
+errors in other people's packages. In fairness, this may well have been due to
+misuse of libtool, but either way I never learned it. Libtool was especially
+important back in the olden days when systems were very diverse, and when static
+libraries were measureably more efficient than dynamic ones. These days I tend
+to compile my .a files with PIC (so I can blob them into a .so plugin easily),
+and platforms with significant differences seem to have reduced to Linux/\*BSD,
+OSX and Cygwin and MinGW though in the latter cases it will also work the same
+way as Linux. So, in short I've not felt I'd gain all that much by learning it.
+
 
 
 

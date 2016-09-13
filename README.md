@@ -711,6 +711,8 @@ Have you ever had the following process:
 
 Don't inflict that on your users.
 
+TODO
+
 
 ## What about automake and libtool?
 

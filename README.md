@@ -483,7 +483,7 @@ program on a different mahchine (for example if you're cross compiling).
 Even without machine specific tests, there are other things you might want to
 look for or other parts of the build system you might want to probe.
 
-## Other tests
+### Other tests
 
 At this point I'm just going to list a selection of what's available. The usage
 should be reasonably obvious from the names. Quite a few of the marcros have
@@ -504,14 +504,40 @@ point.
 * `AC_CHECK_TYPES([long long])`, `AC_TYPE_UINT8_T` ---  check for various
   typedefs
 * `AC_OPENMP`
+* Anything starting `AC_MSG` for generting output that's consistent with the
+  built in tests.
 
-## Other people's macros
 
-Autoconf provides tools, but doesn't provide tests for everything, especially
-outside of C.
+## Help! I can't test for C++14 (or something else)
 
-## Writing your own tests
+### Other people's macros
 
+Autoconf provides good underlying tools, but doesn't provide tests for
+everything, especially outside of C. Fortunately, there's repositories of
+extensions out there and autoconf has a decent mechanism 
+
+### Writing your own tests
+
+
+## Miscellaneous things you should know
+
+## Making the world a better place
+
+Who doesn't want to make the world a better place?
+
+Have you ever had the following process:
+
+1. `./confiugure && make && make install`
+2. Try running the program to discover some feature you want is missing.
+3. Re configure.
+4. Examine output of autoconf until your eyes bleed.
+5. Finally discover the most likely things which have failed.
+6. Install packages, configure and make. 
+7. Discover you were wrong, and repeat 4-6 until you finally get the package
+   working
+8. Then repeat 1-8 until you finally have every feature you care about, or
+   until you simply lose the will to carry on.
+9. Use your new prorgam in a desultory manner.
 
 
 ## What about automake and libtool?

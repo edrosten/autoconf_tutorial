@@ -116,6 +116,7 @@ We now need a matching configure script:
 AC_INIT(program, 1.0)
 
 dnl Switch to a C++ compiler, and check if it works.
+AC_LANG(C++)
 AC_PROG_CXX
 
 dnl Process Makefile.in to create Makefile
@@ -263,6 +264,49 @@ checking for zlib.h... yes
 checking for library containing deflte... no
 configure: error: A working zlib is required
 ```
+
+## What's going on under the hood?
+
+I find many tools and systems easier to understand if I know what's going on
+under the hood. I think it makes predicting the behaviour and debugging
+substantially easier. Fortunately, autoconf is fairly straightforward in that
+regard.
+
+Autoconf is essentially a compiler that compiles the `configure.ac` script into
+a shell script which can then run on any platform without autoconf being
+present. Well, I say compiler... It's actually all in a language called M4. M4
+is a macro processing system, like the C preprocessor on steroids (and PCP).
+When you run autoconf, it defines a whole bunch of M4 macros and then runs your
+script through the M4 preprocessor. The macros all get expanded (they all
+contain shell code) and out comes pure shell code with no trace of the M4 or
+autoconf languages left behind.
+
+The macros are in all caps, and everything else is passed through as-is with no
+modification. That's why you can write logic in shell code too: it just ends up
+in the configure script.
+
+Most of the tests in autoconf are to do with compiled code. To do these,
+autoconf emits small programs to a file, then runs that file through the
+compiler and possibly linker, and checks the resulting error codes. For example:
+
+```M4
+AC_CHECK_LIB(m, cos)
+```
+Will generate a program looking something like this:
+```C
+char cos (); 
+int main ()
+{   
+    cos ();
+	return 0;
+}
+```
+Then attempt to compile and link it with libm. Autoconf does similar things for
+`AC_CHECK_HEADERS`, but only runs the compiler, not the linker too. If you want
+to see more details, then create a test which you know will fail, run the script
+and and look in `config.log`. It only stores the program fragments from tests
+that fail.
+
 
 ## More advanced test results
 
@@ -483,6 +527,56 @@ program on a different mahchine (for example if you're cross compiling).
 Even without machine specific tests, there are other things you might want to
 look for or other parts of the build system you might want to probe.
 
+### Degugging 
+
+There are several levels of debugging which you need to do. There's debugging
+your shell code (I'm not going to help there), debugging tests in the configure
+script and debugging the generated files.
+
+If you're debugging autoconf tests, the best place to look is `config.log`. That
+stores lots of useful information about tests that fail, including the compiler
+line with all flags and the bit of code being compiled. It's often quite large,
+so you'll have to search through it. You can also put your own text in the log
+to aid that process.
+
+Here's [an example](ex_10):
+
+```autoconf
+AC_INIT(myconfig, version-0.1)
+AC_PROG_CXX
+
+
+AC_SEARCH_LIBS(cos, m)
+
+echo "This library check will fail" >&AS_MESSAGE_LOG_FD
+AC_SEARCH_LIBS(foo, bar)
+
+AC_MSG_NOTICE([This message will appear in the log and on the screen])
+AC_CHECK_HEADERS(foo, bar)
+```
+Run the script and look in the log file.
+
+Assuming your configure script runs correctly, the next layer of the stack with
+bugs is the generated Makefile and `config.h` if either exist. It would be
+awfully tedious if you had to re-run configure every time you changed one of
+those. Fortunately you don't. 
+
+Before autoconf completes, it generates a script called `config.status`, then
+executes it. This script stores the results of autoconf and does the template
+substitutions on the .in files. So, if you edit your `Makefile.in` and run
+`config.status`, it'll re-generate the Makefile.
+
+
+### Using other languages
+
+Autoconf supports several languages. The easiest way to switch is:
+```autoconf
+AC_LANG(Fortran)
+```
+which changes the language that tests are run in. There's also a stack of
+languages so you can push and pop them to make temporary changes.
+
+
 ### Other tests
 
 At this point I'm just going to list a selection of what's available. The usage
@@ -513,13 +607,89 @@ point.
 ### Other people's macros
 
 Autoconf provides good underlying tools, but doesn't provide tests for
-everything, especially outside of C. Fortunately, there's repositories of
-extensions out there and autoconf has a decent mechanism 
+everything. In many cases, instead of writing your own you can instead grab one
+already written from [the huge official archive of
+macros](http://www.gnu.org/software/autoconf-archive/index.html). They're also
+very easy to use precisely because M4 is a macro language.
+
+Here's [an example](ex_11) for C++14. First get [this extension
+macro](http://www.gnu.org/software/autoconf-archive/ax_cxx_compile_stdcxx.html)
+and put it in the `m4` subdirectory. Then use it in the following way:
+```M4
+AC_INIT(myconfig, version-0.1)
+AC_LANG(C++)
+AC_PROG_CXX
+
+
+m4_include([m4/ax_cxx_compile_stdcxx.m4])
+AX_CXX_COMPILE_STDCXX(14)
+```
+Now your script will test for C++ 14 and fail if it isn't found. The official
+extension macros are generally very well tested and so it's better to use those
+than roll your own.
 
 ### Writing your own tests
 
+Sooner or later, you'll probably find that there's not a test for something you
+want to do repeatedly. For example, I like to routinely add flags to do with
+warnings, GDB symbols and so on.  [Here's](ex_12) an example of a custom test
+and its use
+```autoconf
+dnl TEST_AND_SET_CXXFLAG(flag, [program])
+dnl
+dnl This attempts to compile a program with a certain compiler flag.
+dnl If no program is given, then the minimal C++ program is compiled, and 
+dnl this tests just the validity of the compiler flag. 
+dnl
+define([TEST_AND_SET_CXXFLAG],[
+	AC_MSG_CHECKING([if compiler flag $1 works])	
+	
+	dnl Store the current CXXFLAGS
+	save_CXXFLAGS="$CXXFLAGS"
 
-## Miscellaneous things you should know
+	dnl Append the flag of interest
+	CXXFLAGS="$CXXFLAGS $1"
+	
+	dnl Create an M4 macro, "prog", which expands to a C++ program.
+	dnl This should either be a default one or the one specified.
+	dnl Note that macros are not local, but there is a stack so push
+	dnl the definition on to the stack to prevent clobbering a definition
+	dnl that might already exist.
+	m4_if([$2],[],[pushdef(prog, [int main(){}])], [pushdef(prog, [$2])])
+	
+	flag_test=0
+	
+	dnl See if the compiler runs
+	AC_COMPILE_IFELSE([AC_LANG_SOURCE([prog])], [flag_test=1],[flag_test=0])
+	
+	dnl De-clobber the "prog" macro
+	popdef([prog])
+
+	if test $flag_test = 1
+	then
+		AC_MSG_RESULT(yes)
+	else
+		AC_MSG_RESULT(no)
+		dnl The flag doesn't work, so restore the old CXXFLAGS
+		CXXFLAGS="$save_CXXFLAGS"
+	fi
+])
+
+dnl Add flags, but only if the flags weren't overridden already
+if test "$CXXFLAGS" == "-g -O2"
+then
+	
+	TEST_AND_SET_CXXFLAG(-Wall)
+	TEST_AND_SET_CXXFLAG(-Wextra)
+	TEST_AND_SET_CXXFLAG(-W)
+	TEST_AND_SET_CXXFLAG(-O3)
+	TEST_AND_SET_CXXFLAG(-ggdb)
+	TEST_AND_SET_CXXFLAG(-fnot-a-valid-flag)
+fi
+```
+If you run the configure script it will attempt to add a whole bunch of flags to
+the compiler, but it won't cause errors if any of those flags are invalid.
+
 
 ## Making the world a better place
 
@@ -538,6 +708,8 @@ Have you ever had the following process:
 8. Then repeat 1-8 until you finally have every feature you care about, or
    until you simply lose the will to carry on.
 9. Use your new prorgam in a desultory manner.
+
+Don't inflict that on your users.
 
 
 ## What about automake and libtool?

@@ -709,9 +709,10 @@ Have you ever had the following process:
    until you simply lose the will to carry on.
 9. Use your new prorgam in a desultory manner.
 
-Don't inflict that on your users.
+The good news is there's no need to inflict that on your users.
 
-TODO
+
+
 
 
 ## What about automake and libtool?

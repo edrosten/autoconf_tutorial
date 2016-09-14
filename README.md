@@ -709,8 +709,144 @@ Have you ever had the following process:
    until you simply lose the will to carry on.
 9. Use your new prorgam in a desultory manner.
 
-The good news is there's no need to inflict that on your users.
+The good news is there's no need to inflict that on your users. [In this
+example](ex_13), there's a configure script for a hypothetical library which
+handles images and video. All dependencies are optional---if it's missing
+libjpeg, it'll work but just not be able to handle that format for example.
 
+Here's what I do to make my scripts look nice. Firstly, I make pretty section
+headers in the configure output using a macro like this:
+```autoconf
+define(SECTION_TITLE,
+[
+	echo >& AS_MESSAGE_FD
+	echo '   $1   ' | sed -e's/./-/g' >&AS_MESSAGE_FD
+	echo '   $1' >& AS_MESSAGE_FD
+	echo '   $1   ' | sed -e's/./-/g' >&AS_MESSAGE_FD
+])
+
+
+SECTION_TITLE([Checking for image libraries])
+```
+Then, I keep track of what possible options there are. First, define a list of
+all possible options:
+```autoconf
+all_options="jpeg png tiff funkyimage v4l2 ffmpeg awesomevideo" 
+```
+then have another list which is the options which have been found. Whenever, you
+find something, then append it to the list:
+```autoconf
+options=
+...
+options="$options jpeg"
+
+```
+So, a complete test would look like this:
+```autoconf
+a=0
+AC_CHECK_HEADERS(png.h, [], [a=1])
+AC_SEARCH_LIBS(png_create_info_struct, png, [], [a=1])
+if test $a == 0
+then
+	options="$options png"
+fi
+
+```
+Then at the end of the script, print out both a list of options and list of the
+missing options. I do that with a little bit of shell scripting:
+```shell
+echo "$options" "$all_options" | tr ' ' '\n' | sort | uniq -u | tr '\n' ' '
+```
+The [resulting configure script](ex_13/configure.ac) gives an output which I
+think is much easier to read and to figure out the results of than the usual
+wall of text:
+```text
+$ ./configure 
+checking for g++... g++
+checking whether the C++ compiler works... yes
+checking for C++ compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C++ compiler... yes
+checking whether g++ accepts -g... yes
+checking how to run the C++ preprocessor... g++ -E
+checking for grep that handles long lines and -e... /bin/grep
+checking for egrep... /bin/grep -E
+checking for ANSI C header files... yes
+checking for sys/types.h... yes
+checking for sys/stat.h... yes
+checking for stdlib.h... yes
+checking for string.h... yes
+checking for memory.h... yes
+checking for strings.h... yes
+checking for inttypes.h... yes
+checking for stdint.h... yes
+checking for unistd.h... yes
+checking iostream usability... yes
+checking iostream presence... yes
+checking for iostream... yes
+
+----------------------------------
+   Checking for image libraries
+----------------------------------
+checking jpeglib.h usability... yes
+checking jpeglib.h presence... yes
+checking for jpeglib.h... yes
+checking for library containing jpeg_set_defaults... -ljpeg
+checking png.h usability... yes
+checking png.h presence... yes
+checking for png.h... yes
+checking for library containing png_create_info_struct... -lpng
+checking tiffio.h usability... yes
+checking tiffio.h presence... yes
+checking for tiffio.h... yes
+checking for library containing TIFFOpen... -ltiff
+checking funkyimage.h usability... no
+checking funkyimage.h presence... no
+checking for funkyimage.h... no
+checking for library containing funkyopen... no
+
+--------------------------------
+   Checking for video options
+--------------------------------
+checking linux/videodev2.h usability... yes
+checking linux/videodev2.h presence... yes
+checking for linux/videodev2.h... yes
+checking for ffmpeg... 
+checking libavcodec/avcodec.h usability... yes
+checking libavcodec/avcodec.h presence... yes
+checking for libavcodec/avcodec.h... yes
+checking libavformat/avformat.h usability... yes
+checking libavformat/avformat.h presence... yes
+checking for libavformat/avformat.h... yes
+checking libswscale/swscale.h usability... yes
+checking libswscale/swscale.h presence... yes
+checking for libswscale/swscale.h... yes
+checking for library containing main... none required
+checking for library containing av_read_frame... -lavformat
+checking for library containing avcodec_open2... -lavcodec
+checking for library containing sws_getContext... -lswscale
+checking awesomevid.h usability... no
+checking awesomevid.h presence... no
+checking for awesomevid.h... no
+checking for library containing openawesome... no
+
+---------------------------
+   Configuration results
+---------------------------
+Options:
+ jpeg png tiff v4l2 ffmpeg
+
+Missing options:
+ awesomevideo funkyimage 
+
+
+CXXFLAGS=-g -O2
+LDFLAGS=
+LIBS=-lswscale -lavcodec -lavformat -ltiff -lpng -ljpeg 
+$ █
+```
 
 
 

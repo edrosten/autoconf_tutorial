@@ -1,4 +1,4 @@
-#A brief introduction to Autoconf (2nd edition)
+# A brief introduction to Autoconf (2nd edition)
 
 ## Preface
 
@@ -44,7 +44,7 @@ not essential for the basic examples. No knowledge of M4 is needed, but it worth
 knowing especially if you want to write your own custom tests which you wish to
 reuse.
 
-##Hello, World.
+## Hello, World.
 
 Grab the code in [example 1](ex_01), or put this in configure.ac:
 

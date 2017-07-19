@@ -160,7 +160,7 @@ make clean
 
 ```
 Naturally that will fail if you don't have that compiler. You can even cross
-compile! First, install the AVR toolchain if you can, then run:
+compile! First, install the AVR toolchain (on ubuntu sudo apt-get install gcc-avr binutils-avr avr-libc) if you can, then run:
 ```bash
 ./configure --host avr && make
 ```

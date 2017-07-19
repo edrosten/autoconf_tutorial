@@ -330,7 +330,7 @@ then
 	dnl Thing to do if the library is present
 	;
 else
-	dnl Thing to do if the library is present
+	dnl Thing to do if the library is not present
 	;
 fi
 

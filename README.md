@@ -428,6 +428,10 @@ solution to some gnarly cross-platform portability problem involves the
 preprocessor. In most cases though however, the cleanest portable designs will
 rely on separating off platform specific parts into different modules and files.
 
+Regarding point 4, you should really avoid having a public config.h if at all 
+possible. When you can't keep the dependencies on it as small as possible, by putting
+anything not required to be public in a private config.h. Autoconf allows you to
+specify a whole list of headers.
 
 ### Nicer dependencies with --with and --enable
 

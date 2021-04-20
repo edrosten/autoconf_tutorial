@@ -531,7 +531,7 @@ program on a different mahchine (for example if you're cross compiling).
 Even without machine specific tests, there are other things you might want to
 look for or other parts of the build system you might want to probe.
 
-### Degugging 
+### Debugging
 
 There are several levels of debugging which you need to do. There's debugging
 your shell code (I'm not going to help there), debugging tests in the configure
